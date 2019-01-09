@@ -23,6 +23,7 @@ def apply_threshold_window(img_input, setValue, range: tuple):
 
 def apply_thresholding_algorithm(image, method: int = 1, plot: bool = False):
     name = 'Not Set'
+    thresholded = None
 
     if method == 1:
         name = 'Triangle'
@@ -65,6 +66,24 @@ def get_regions(img, threshImg):
         for i in np.arange(0, sizeX):
             for j in np.arange(0, sizeY):
                 if threshImg[i][j] == 1:
+                    front[i][j] = img[i][j]
+                else:
+                    back[i][j] = img[i][j]
+        return back, front
+
+
+def get_regions_grayscale(img, threshImg):
+
+    if img.shape != threshImg.shape:
+        print("[ERROR] The image sizes doesn´t match")
+        return None
+    else:
+        sizeX, sizeY = img.shape
+        back = np.zeros(img.shape)
+        front = np.zeros(img.shape)
+        for i in np.arange(0, sizeX):
+            for j in np.arange(0, sizeY):
+                if threshImg[i][j] > 160:
                     front[i][j] = img[i][j]
                 else:
                     back[i][j] = img[i][j]

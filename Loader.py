@@ -3,9 +3,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 #ENVIROMENTAL VARIABLES
-#BASE_PATH = "/Users/javier/Documents/VA_PRACTICAS/Images/P2/"
+BASE_PATH = "/Users/javier/Documents/VA_PRACTICAS/Images/P2/"
 #WINDOWS BASE PATH
-BASE_PATH = "C:/Users/Javier/DevData/P2/Images/"
+# BASE_PATH = "C:/Users/Javier/DevData/P2/Images/"
 GRAY = cv2.IMREAD_GRAYSCALE
 
 
