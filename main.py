@@ -4,6 +4,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 import Smoothing as smooth
 import Thresholding as thresh
+import Draw as dw
+from imutils import perspective
+from imutils import contours
+import imutils
 from skimage.restoration import denoise_tv_chambolle
 import Edges as edg
 from skimage import exposure
@@ -94,35 +98,56 @@ def process_image(img):
 
     # thresholding_comparison(denoised_img)
     th_img = thresh.apply_thresholding_algorithm(denoised_img, thresh.THRESH_TRIANGLE)
-    back, front = thresh.get_regions(denoised_img, th_img)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 5))
+    stretched = cv2.morphologyEx(th_img, cv2.MORPH_ERODE, kernel)
+    back, front = thresh.get_regions(denoised_img, stretched)
     # Loader.hist_compare([back, front], ["Back", "Front"])
     #Loader.print_image(front)
     eq = Loader.equalization(front.astype("uint8"))
-    #Loader.print_image(eq)
+    eq = bright_and_contrast(eq, 2.8, 80)
+    eq = smooth.gaussian(eq,2.5)
+    Loader.print_image(eq)
     # Loader.hist_and_cumsum(eq)
 
     # EDGE DETECTION
     #edgesFunctions(eq) # Comparison of different edge detection method
     edges = edg.laplacian_of_gaussian(eq, 2)
-    #Loader.print_image(edges)
+    Loader.print_image(edges)
     # Fill the cornea area with white pixels
     dilated = fill_cornea(edges)
+    #Loader.print_image(dilated)
+    #Calculate distances in the cornea-lens region
+    #lineas = dw.find_vertical_lines(dilated)
+    #diferencias,posiciones = dw.calculate_differences(lineas)
+    #dw.draw_graph_distance(diferencias, posiciones)
+    #output_image = dw.lines_image(lineas, img)
     # Surround the córnea area and lens edges with visible and thin line
-    (i, contornos, jerarquia) = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    cv2.drawContours(img, contornos, -1, (0, 0, 255), 3)
+    (i, contornos, jerarquia) = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnts = []
+    for c in contornos:
+        if cv2.contourArea(c) < 1000:
+            continue
+        else:
+            cnts.append(c)
+    cv2.drawContours(img, cnts, -1, (0, 0, 255), 3)
     #Loader.print_image(img)
     return img
     # cv2.imwrite(Loader.BASE_PATH+"res/img10.jpeg", img)
 
+def draw_contours(img,contours):
+
+    for cont in contours:
+        xPos = cont[0][0][1]
+        yPos = cont[0][0][0]
 
 def apply_to_all():
-    for i in np.arange(1, 13):
+    for i in np.arange(3, 13):
 
         img = Loader.load_image("im"+i.astype(str)+".jpeg")
         #TODO process image must return the output image
-        process_image(img)
+        res = process_image(img)
         print("res/img"+i.astype(str)+".jpeg")
-        cv2.imwrite(Loader.BASE_PATH + "res/img"+i.astype(str)+".jpeg", img)
+        cv2.imwrite(Loader.BASE_PATH + "res/img"+i.astype(str)+".jpeg", res)
 
 
 def bright_and_contrast(source, contrast, bright):
@@ -134,9 +159,18 @@ def bright_and_contrast(source, contrast, bright):
 if __name__ == '__main__':
 
     print("[DEBUG] Load image from local sources")
-    img = Loader.load_image("im4.jpeg")
-    res = process_image(img)
-    Loader.print_image(res)
+    # img = Loader.load_image("test/th.jpeg")
+    image = Loader.load_image("im4.jpeg")
+
+    # lineas = dw.find_vertical_lines(img)
+    # diferencias,posiciones = dw.calculate_differences(lineas)
+    # dw.draw_graph_distance(diferencias, posiciones)
+    # output = dw.lines_image(lineas, image)
+
+    # Loader.print_image(img)
+    # Loader.print_image(output)
+    salida = process_image(image)
+    Loader.print_image(salida)
     #apply_to_all()
     print("[DEBUG] End of processing")
 

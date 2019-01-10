@@ -70,3 +70,18 @@ def equalization(img):
     cdf_m = (cdf_m - cdf_m.min()) * 255 / (cdf_m.max() - cdf_m.min())
     cdf = np.ma.filled(cdf_m, 0).astype('uint8')
     return cdf[img]
+
+
+def inverse_img(img):
+    (shapeY, shapeX) = img.shape
+    inverse = np.zeros(img.shape)
+    for x in np.arange(1, shapeX-5):
+        for y in np.arange(1, shapeY-5):
+            if img[y][x] == 0:
+                inverse[y][x] = 255
+            else:
+                inverse[y][x] = 0
+    #Dilate is here for removing detected imperfections on inverse
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    inverse = cv2.morphologyEx(inverse, cv2.MORPH_DILATE, kernel)
+    return inverse
